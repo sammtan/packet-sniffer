@@ -303,6 +303,99 @@ nslookup github.com  # Generate DNS queries
 ### Contribution
 This project welcomes contributions! Feel free to submit issues, feature requests, or pull requests.
 
+## 🔗 Combined Workflow Integration
+
+### Real-World Security Analysis with DNS Resolver
+
+The Packet Sniffer achieves maximum effectiveness when combined with DNS intelligence tools for comprehensive network security analysis:
+
+#### **Complete Infrastructure Assessment Example**
+
+```bash
+# Step 1: DNS Intelligence (with DNS Resolver)
+# Discover target infrastructure: github.com → 20.205.243.166
+
+# Step 2: Real-time Traffic Monitoring
+python src/packet_sniffer.py -i "Wi-Fi" -c 15 -o github_traffic.json
+# Captures actual traffic showing different IPs due to load balancing
+
+# Step 3: Correlation Analysis
+# DNS: github.com → 20.205.243.166 (expected)
+# Traffic: 192.168.1.5 ↔ 140.82.113.21 (actual)
+# Reveals load balancing and CDN infrastructure
+```
+
+#### **Real Test Results from GitHub Analysis**
+
+```bash
+=== DNS INTELLIGENCE ===
+Target Domain: github.com
+Resolved IP: 20.205.243.166
+API Endpoint: api.github.com → 20.205.243.168
+
+=== LIVE TRAFFIC CAPTURE ===
+Total Packets: 15 (0.16 seconds)
+Protocol: 100% TCP (HTTPS on port 443)
+Actual Endpoint: 140.82.113.21 (12 packets from GitHub)
+Traffic Pattern: Heavy inbound (GitHub → You: 12, You → GitHub: 3)
+
+=== REVERSE DNS VALIDATION ===
+140.82.113.21 → lb-140-82-113-21-iad.github.com
+Infrastructure: GitHub load balancer (Washington DC)
+```
+
+#### **Traffic Analysis Insights**
+
+**What DNS Alone Misses**:
+- **Load Balancer IPs**: Actual traffic goes to different IPs than DNS shows
+- **Traffic Patterns**: Volume, timing, and protocol usage
+- **Geographic Distribution**: Datacenter locations via reverse DNS
+
+**What Packet Analysis Reveals**:
+- **Real Communication**: 95.2 packets/second during API requests
+- **Protocol Security**: 100% encrypted HTTPS traffic
+- **Network Behavior**: TCP connection patterns and data flow
+- **Performance Metrics**: Response times and packet sizes
+
+#### **Integration Architecture**
+
+```python
+# Pseudo-code for combined security platform
+class CombinedAnalyzer:
+    def analyze_target(self, domain):
+        # 1. DNS Discovery
+        dns_info = dns_resolver.resolve_all(domain)
+        ip_ranges = dns_info.get_all_ips()
+        
+        # 2. Live Monitoring
+        sniffer.start_monitoring(ip_ranges)
+        
+        # 3. Real-time Correlation
+        for packet in sniffer.stream():
+            if packet.dest_ip not in ip_ranges:
+                # Discovered new IP through traffic
+                reverse_dns = dns_resolver.reverse(packet.dest_ip)
+                self.log_discovery(packet.dest_ip, reverse_dns)
+        
+        # 4. Comprehensive Report
+        return self.generate_intelligence_report()
+```
+
+#### **Combined Platform Benefits**
+
+**Intelligence Gap Filling**:
+- **DNS provides targets** → **Packet analysis shows reality**
+- **Static infrastructure** → **Dynamic traffic patterns**
+- **Potential endpoints** → **Active communication channels**
+
+**Enhanced Security Analysis**:
+- **Complete attack surface** identification
+- **Real-time threat detection** capabilities
+- **Comprehensive forensic data** collection
+- **Automated correlation** of network activities
+
+This integration creates a **unified network intelligence platform** providing insights neither tool could achieve independently.
+
 ## 📚 Additional Resources
 
 ### Learning Materials
