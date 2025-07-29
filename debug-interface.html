@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Packet Sniffer Interface</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        select { padding: 5px; margin: 10px 0; width: 400px; }
+        button { padding: 5px 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Debug Packet Sniffer Interface</h1>
+    
+    <div class="debug">
+        <h3>Interface Selection Debug</h3>
+        <label for="interface-select">Network Interface:</label>
+        <select id="interface-select" disabled>
+            <option value="">Loading interfaces...</option>
+        </select>
+        <button onclick="loadInterfaces()">Reload Interfaces</button>
+        <button onclick="testAPI()">Test API</button>
+    </div>
+    
+    <div class="debug">
+        <h3>Debug Output</h3>
+        <div id="debug-output" style="background: black; color: green; padding: 10px; font-family: monospace; height: 200px; overflow-y: scroll;"></div>
+    </div>
+    
+    <script>
+        function log(message) {
+            const output = document.getElementById('debug-output');
+            const time = new Date().toLocaleTimeString();
+            output.innerHTML += `[${time}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+        
+        async function testAPI() {
+            log('Testing API connection...');
+            try {
+                const response = await fetch('/api/interfaces');
+                log(`Response status: ${response.status} ${response.statusText}`);
+                
+                const text = await response.text();
+                log(`Raw response: ${text}`);
+                
+                const data = JSON.parse(text);
+                log(`Parsed data: ${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                log(`API Error: ${error.message}`);
+            }
+        }
+        
+        async function loadInterfaces() {
+            log('Loading interfaces...');
+            try {
+                const response = await fetch('/api/interfaces');
+                log(`Response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                log(`Interface data received: ${data.interfaces?.length || 0} interfaces`);
+                
+                if (data.error) {
+                    log(`API Error: ${data.error}`);
+                    return;
+                }
+                
+                const select = document.getElementById('interface-select');
+                if (!select) {
+                    log('ERROR: Interface select element not found!');
+                    return;
+                }
+                
+                select.innerHTML = '<option value="">Select interface...</option>';
+                
+                if (data.interfaces && Array.isArray(data.interfaces)) {
+                    data.interfaces.forEach((iface, index) => {
+                        const option = document.createElement('option');
+                        option.value = iface.name;
+                        const displayName = iface.name.length > 50 ? 
+                            iface.name.substring(0, 47) + '...' : iface.name;
+                        option.textContent = `${displayName} (${iface.ip})`;
+                        select.appendChild(option);
+                        log(`Added interface ${index + 1}: ${iface.name} (${iface.ip})`);
+                    });
+                    
+                    select.disabled = false;
+                    log(`SUCCESS: Loaded ${data.interfaces.length} interfaces, dropdown enabled`);
+                } else {
+                    log('ERROR: No interfaces data received or not an array');
+                }
+                
+            } catch (error) {
+                log(`ERROR: ${error.message}`);
+                const select = document.getElementById('interface-select');
+                if (select) {
+                    select.innerHTML = '<option value="">Error loading interfaces</option>';
+                    select.disabled = true;
+                }
+            }
+        }
+        
+        // Auto-load on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Page loaded, starting interface loading...');
+            loadInterfaces();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packet Sniffer - Real-time Network Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>📡 Packet Sniffer</h1>
+                <p>Real-time Network Traffic Analysis Tool</p>
+                <div class="warning-banner">
+                    <strong>⚠️ Educational Use Only:</strong> Use only on networks you own or have explicit permission to monitor.
+                </div>
+            </div>
+        </header>
+
+        <!-- Control Panel -->
+        <section class="control-panel">
+            <div class="control-group">
+                <label for="interface-select">Network Interface:</label>
+                <select id="interface-select" disabled>
+                    <option value="">Loading interfaces...</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="protocol-filter">Protocol Filter:</label>
+                <select id="protocol-filter">
+                    <option value="">All Protocols</option>
+                    <option value="tcp">TCP</option>
+                    <option value="udp">UDP</option>
+                    <option value="icmp">ICMP</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="packet-limit">Packet Limit:</label>
+                <input type="number" id="packet-limit" min="0" max="10000" value="0" placeholder="0 = unlimited">
+            </div>
+            
+            <div class="control-actions">
+                <button id="start-btn" class="btn btn-primary">🚀 Start Capture</button>
+                <button id="stop-btn" class="btn btn-danger" disabled>⏹️ Stop Capture</button>
+                <button id="clear-btn" class="btn btn-secondary">🗑️ Clear</button>
+            </div>
+        </section>
+
+        <!-- Status Display -->
+        <section class="status-section">
+            <div class="status-card">
+                <h3>📊 Capture Status</h3>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">Status:</span>
+                        <span id="capture-status" class="status-value">Stopped</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Packets:</span>
+                        <span id="packet-count" class="status-value">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Rate:</span>
+                        <span id="packet-rate" class="status-value">0/s</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Runtime:</span>
+                        <span id="runtime" class="status-value">0s</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabs -->
+        <section class="tabs-section">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="live">📺 Live Packets</button>
+                <button class="tab-btn" data-tab="statistics">📈 Statistics</button>
+                <button class="tab-btn" data-tab="export">💾 Export</button>
+            </div>
+
+            <!-- Live Packets Tab -->
+            <div id="live-tab" class="tab-content active">
+                <div class="packets-controls">
+                    <div class="search-box">
+                        <input type="text" id="packet-search" placeholder="Search packets (IP, port, protocol)...">
+                    </div>
+                    <div class="auto-scroll">
+                        <label>
+                            <input type="checkbox" id="auto-scroll" checked>
+                            Auto-scroll
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="packets-container">
+                    <div class="packets-header">
+                        <div class="packet-column">Time</div>
+                        <div class="packet-column">Protocol</div>
+                        <div class="packet-column">Source</div>
+                        <div class="packet-column">Destination</div>
+                        <div class="packet-column">Length</div>
+                        <div class="packet-column">Info</div>
+                    </div>
+                    <div id="packets-list" class="packets-list">
+                        <div class="no-packets">No packets captured yet. Start capture to begin monitoring.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Tab -->
+            <div id="statistics-tab" class="tab-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Protocol Distribution</h4>
+                        <div id="protocol-stats" class="stat-content">
+                            <div class="no-data">No data available</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h4>Top Source IPs</h4>
+                        <div id="source-stats" class="stat-content">
+                            <div class="no-data">No data available</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h4>Top Destinations</h4>
+                        <div id="dest-stats" class="stat-content">
+                            <div class="no-data">No data available</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h4>Active Ports</h4>
+                        <div id="port-stats" class="stat-content">
+                            <div class="no-data">No data available</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Tab -->
+            <div id="export-tab" class="tab-content">
+                <div class="export-section">
+                    <h3>📤 Export Captured Packets</h3>
+                    <p>Download captured packet data in various formats for further analysis.</p>
+                    
+                    <div class="export-options">
+                        <div class="export-card">
+                            <h4>JSON Format</h4>
+                            <p>Complete packet data with metadata and statistics in JSON format.</p>
+                            <button class="btn btn-primary" onclick="exportPackets('json')">📄 Download JSON</button>
+                        </div>
+                        
+                        <div class="export-card">
+                            <h4>CSV Format</h4>
+                            <p>Tabular packet data suitable for spreadsheet analysis.</p>
+                            <button class="btn btn-primary" onclick="exportPackets('csv')">📊 Download CSV</button>
+                        </div>
+                    </div>
+                    
+                    <div class="export-info">
+                        <p><strong>Note:</strong> Export is only available after capturing packets.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
